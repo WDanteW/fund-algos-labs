@@ -1,0 +1,1 @@
+-na lab1/tests4/input.txt lab1/tests4/custom_out.txt

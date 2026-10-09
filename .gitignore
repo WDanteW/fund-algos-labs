@@ -53,3 +53,9 @@ dkms.conf
 
 # debug information files
 *.dwo
+
+# Сборочные директории CLion / CMake
+cmake-build-*/
+
+# Скомпилированные исполняемые файлы проекта
+*_bin

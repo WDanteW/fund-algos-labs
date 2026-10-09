@@ -1,0 +1,15 @@
+cmake_minimum_required(VERSION 3.20)
+project(fund-algos C)
+
+set(CMAKE_C_STANDARD 11)
+
+add_executable(lab1_task1 lab1/task1.c)
+add_executable(lab1_task2 lab1/task2.c)
+add_executable(lab1_task3 lab1/task3.c)
+add_executable(lab1_task4 lab1/task4.c)
+add_executable(lab1_task5 lab1/task5.c)
+add_executable(lab1_task6 lab1/task6.c)
+add_executable(lab1_task7 lab1/task7.c)
+add_executable(lab1_task8 lab1/task8.c)
+add_executable(lab1_task9 lab1/task9.c)
+add_executable(lab1_task10 lab1/task10.c)

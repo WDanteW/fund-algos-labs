@@ -1,0 +1,1 @@
+-r lab1/tests7/file1.txt lab1/tests7/file2.txt lab1/tests7/out_r.txt

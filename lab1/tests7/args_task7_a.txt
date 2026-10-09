@@ -1,0 +1,1 @@
+-a lab1/tests7/in_a.txt lab1/tests7/out_a.txt
