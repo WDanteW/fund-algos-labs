@@ -4,7 +4,6 @@
 #include <math.h>
 #include <stdarg.h>
 #include <string.h>
-#include <errno.h>
 
 typedef enum status_code {
     SUCCESS = 0,
@@ -127,10 +126,9 @@ static status_code find_kaprekar_numbers(int base, int count, void (*callback)(c
         if (str_num == NULL) continue;
 
         char *endptr = NULL;
-        errno = 0;
         unsigned long long val = strtoull(str_num, &endptr, base);
 
-        if (errno == ERANGE || *endptr != '\0') {
+        if (endptr == str_num || *endptr != '\0') {
             continue;
         }
 

@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <errno.h>
+#include <limits.h>
 
 typedef enum status_code {
     SUCCESS = 0,
@@ -19,21 +19,28 @@ typedef enum prime_status {
     NEITHER_PRIME_NOR_COMPOSITE
 } prime_status;
 
-// Вспомогательная функция валидации строки в long
+// Вспомогательная функция валидации строки в long без использования errno
 static status_code parse_long(const char *str, long *result) {
     if (str == NULL || result == NULL || *str == '\0') {
         return ERROR_INVALID_NUMBER;
     }
 
     char *endptr = NULL;
-    errno = 0;
     long val = strtol(str, &endptr, 10);
 
-    if (errno == ERANGE) {
-        return ERROR_OUT_OF_RANGE;
+    // 1. Проверяем, удалось ли распознать хоть какие-то цифры
+    if (endptr == str) {
+        return ERROR_INVALID_NUMBER;
     }
+
+    // 2. Проверяем, не осталось ли на хвосте лишних символов
     if (*endptr != '\0') {
         return ERROR_INVALID_NUMBER;
+    }
+
+    // 3. Проверяем выход за пределы диапазона типа long (или int)
+    if (val > INT_MAX || val < INT_MIN) {
+        return ERROR_OUT_OF_RANGE;
     }
 
     *result = val;

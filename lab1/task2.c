@@ -2,7 +2,6 @@
 #include <stdlib.h>
 #include <math.h>
 #include <stdbool.h>
-#include <errno.h>
 
 typedef enum status_code {
     SUCCESS = 0,
@@ -17,10 +16,9 @@ static status_code parse_double(const char *str, double *result) {
     }
 
     char *endptr = NULL;
-    errno = 0;
     double val = strtod(str, &endptr);
 
-    if (errno == ERANGE || *endptr != '\0') {
+    if (endptr == str || *endptr != '\0') {
         return ERROR_INVALID_EPSILON;
     }
 
@@ -105,7 +103,7 @@ static status_code pi_series(double eps, double *res) {
     int n = 1;
 
     while (fabs(term) >= eps) {
-        term = ((n % 2 == 1) ? 1.0 : -1.0) / (2.0 * n - 1.0);
+        term = ((n % 2 == 1) ? 1.0 : -1.0) / (2.0 * (double)n - 1.0);
         sum += term;
         n++;
     }

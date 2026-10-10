@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
-#include <errno.h>
+#include <limits.h>
 
 typedef enum status_code {
     SUCCESS = 0,
@@ -17,9 +17,9 @@ static status_code parse_int(const char *str, int *result) {
         return ERROR_INVALID_INPUT;
     }
     char *endptr = NULL;
-    errno = 0;
     long val = strtol(str, &endptr, 10);
-    if (errno == ERANGE || *endptr != '\0') {
+
+    if (endptr == str || *endptr != '\0' || val > INT_MAX || val < INT_MIN) {
         return ERROR_INVALID_INPUT;
     }
     *result = (int)val;

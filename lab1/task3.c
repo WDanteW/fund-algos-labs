@@ -3,7 +3,6 @@
 #include <stdbool.h>
 #include <math.h>
 #include <string.h>
-#include <errno.h>
 
 typedef enum status_code {
     SUCCESS = 0,
@@ -19,10 +18,9 @@ static status_code parse_double(const char *str, double *result) {
     }
 
     char *endptr = NULL;
-    errno = 0;
     double val = strtod(str, &endptr);
 
-    if (errno == ERANGE || *endptr != '\0') {
+    if (endptr == str || *endptr != '\0') {
         return ERROR_INVALID_NUMBER;
     }
 
@@ -36,10 +34,9 @@ static status_code parse_long(const char *str, long *result) {
     }
 
     char *endptr = NULL;
-    errno = 0;
     long val = strtol(str, &endptr, 10);
 
-    if (errno == ERANGE || *endptr != '\0') {
+    if (endptr == str || *endptr != '\0') {
         return ERROR_INVALID_NUMBER;
     }
 

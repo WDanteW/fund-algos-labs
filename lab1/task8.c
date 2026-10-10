@@ -3,7 +3,7 @@
 #include <stdbool.h>
 #include <string.h>
 #include <ctype.h>
-#include <errno.h>
+#include <limits.h>
 
 typedef enum status_code {
     SUCCESS = 0,
@@ -142,10 +142,10 @@ static status_code process_file(const char *in_file, const char *out_file) {
         remove_leading_zeros(lexeme, &stripped);
 
         char *endptr = NULL;
-        errno = 0;
         unsigned long long dec_val = strtoull(stripped, &endptr, base);
 
-        if (errno == ERANGE || *endptr != '\0') {
+        // Проверка корректности конца парсинга и отсутствия перепления через ULLONG_MAX
+        if (*endptr != '\0' || dec_val == ULLONG_MAX) {
             free(lexeme);
             continue;
         }

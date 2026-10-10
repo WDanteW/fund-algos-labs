@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
-#include <errno.h>
 
 typedef enum status_code {
     SUCCESS = 0,
@@ -15,10 +14,9 @@ static status_code parse_double(const char *str, double *result) {
     }
 
     char *endptr = NULL;
-    errno = 0;
     double val = strtod(str, &endptr);
 
-    if (errno == ERANGE || *endptr != '\0') {
+    if (endptr == str || *endptr != '\0') {
         return ERROR_INVALID_EPSILON;
     }
 
