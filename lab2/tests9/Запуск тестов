@@ -1,0 +1,2 @@
+gcc -std=c99 -Wall -Wextra lab2/task9_2.c -o task9_2_bin
+./task9_2_bin

@@ -19,7 +19,7 @@ typedef enum prime_status {
     NEITHER_PRIME_NOR_COMPOSITE
 } prime_status;
 
-// Вспомогательная функция валидации строки в long без использования errno
+
 static status_code parse_long(const char *str, long *result) {
     if (str == NULL || result == NULL || *str == '\0') {
         return ERROR_INVALID_NUMBER;
@@ -28,17 +28,14 @@ static status_code parse_long(const char *str, long *result) {
     char *endptr = NULL;
     long val = strtol(str, &endptr, 10);
 
-    // 1. Проверяем, удалось ли распознать хоть какие-то цифры
     if (endptr == str) {
         return ERROR_INVALID_NUMBER;
     }
 
-    // 2. Проверяем, не осталось ли на хвосте лишних символов
     if (*endptr != '\0') {
         return ERROR_INVALID_NUMBER;
     }
 
-    // 3. Проверяем выход за пределы диапазона типа long (или int)
     if (val > INT_MAX || val < INT_MIN) {
         return ERROR_OUT_OF_RANGE;
     }
@@ -47,7 +44,7 @@ static status_code parse_long(const char *str, long *result) {
     return SUCCESS;
 }
 
-// Флаг -h: натуральные числа <= 100, кратные x
+
 static status_code task_h(long x, long *multiples, size_t *count) {
     if (x <= 0) {
         return ERROR_INVALID_NUMBER;
@@ -68,7 +65,7 @@ static status_code task_h(long x, long *multiples, size_t *count) {
     return SUCCESS;
 }
 
-// Флаг -p: проверка на простое / составное
+
 static status_code task_p(long x, prime_status *res) {
     if (res == NULL) {
         return ERROR_INVALID_NUMBER;
@@ -90,7 +87,7 @@ static status_code task_p(long x, prime_status *res) {
     return SUCCESS;
 }
 
-// Флаг -s: разделение x на цифры в 16-ричной системе
+
 static status_code task_s(long x, char *hex_str, size_t max_len) {
     if (hex_str == NULL || max_len == 0) {
         return ERROR_INVALID_NUMBER;
@@ -102,7 +99,7 @@ static status_code task_s(long x, char *hex_str, size_t max_len) {
     return SUCCESS;
 }
 
-// Флаг -e: таблица степеней для показателей 1..x и оснований 1..10
+
 static status_code task_e(long x, long long table[10][10]) {
     if (x < 1 || x > 10) {
         return ERROR_OUT_OF_RANGE;
@@ -119,7 +116,7 @@ static status_code task_e(long x, long long table[10][10]) {
     return SUCCESS;
 }
 
-// Флаг -a: сумма от 1 до x
+
 static status_code task_a(long x, long long *sum) {
     if (x < 1) {
         return ERROR_INVALID_NUMBER;
@@ -136,7 +133,7 @@ static status_code task_a(long x, long long *sum) {
     return SUCCESS;
 }
 
-// Флаг -f: факториал x
+
 static status_code task_f(long x, unsigned long long *factorial) {
     if (x < 0) {
         return ERROR_INVALID_NUMBER;

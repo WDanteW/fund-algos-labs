@@ -1,0 +1,7 @@
+аргументы для запуска сортировки по возрастанию:
+./task2_2_bin lab2/tests2/input_task2.txt -a lab2/tests2/output_asc.txt
+
+аргументы для запуска сортировки по убыванию:
+./task2_2_bin lab2/tests2/input_task2.txt -d lab2/tests2/output_desc.txt
+
+gcc -std=c99 -Wall -Wextra lab2/task2_2.c -o task2_2_bin

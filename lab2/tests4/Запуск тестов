@@ -1,0 +1,2 @@
+gcc -std=c99 -Wall -Wextra lab2/task4_2.c -o task4_2_bin
+./task4_2_bin < lab2/tests4/input_task4.txt

@@ -1,0 +1,2 @@
+gcc -std=c99 -Wall -Wextra lab2/task3_2.c -o task3_2_bin
+./task3_2_bin "Hello" lab2/tests3/file1.txt lab2/tests3/file2.txt

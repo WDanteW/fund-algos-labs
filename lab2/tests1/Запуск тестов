@@ -1,0 +1,2 @@
+./task1_2_bin $(cat lab2/tests1/args_task1_u.txt) или ./lab2/task1_2 -l "HelloCode"
+gcc -std=c99 -Wall -Wextra lab2/task1_2.c -o task1_2_bin

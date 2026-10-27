@@ -1,0 +1,2 @@
+1. [./task1_bin $(cat lab1/tests1/args_task1_s.txt)] или [./task1_bin 17 -p]
+gcc -std=c99 -Wall -Wextra lab1/task1.c -o lab1/task1_bin
