@@ -149,6 +149,12 @@ int main(int argc, char *argv[]) {
         out_path = out_path_allocated;
     }
 
+    if (strcmp(in_path, out_path) == 0) {
+        fprintf(stderr, "Ошибка: входной и выходной файлы не могут совпадать!\n");
+        free(out_path_allocated);
+        return ERROR_FILE_OPEN;
+    }
+
     FILE *fin = fopen(in_path, "r");
     if (fin == NULL) {
         fprintf(stderr, "Ошибка: не удалось открыть входной файл '%s'.\n", in_path);
