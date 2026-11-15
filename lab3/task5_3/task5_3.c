@@ -454,6 +454,12 @@ int main(int argc, char *argv[]) {
     const char *data_filename = argv[1];
     const char *trace_filename = argv[2];
 
+    // Защита от совпадения входного и трассировочного файлов
+    if (strcmp(data_filename, trace_filename) == 0) {
+        fprintf(stderr, "Ошибка: файл данных и трассировочный файл не могут совпадать!\n");
+        return 1;
+    }
+
     student_vector_t students;
     if (vector_init(&students, 10) != STATUS_OK) {
         fprintf(stderr, "Ошибка: не удалось выделить память.\n");

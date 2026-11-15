@@ -1,8 +1,23 @@
-//
-// Created by PC on 15.11.2026.
-//
+#ifndef STATUS_H
+#define STATUS_H
 
-#ifndef FUND_ALGOS_STATUS_H
-#define FUND_ALGOS_STATUS_H
+typedef enum
+{
+    STATUS_OK,
+    STATUS_NULL_POINTER,
+    STATUS_NO_MEMORY,
+    STATUS_INVALID_ARGUMENT,
+    STATUS_OVERFLOW,
+    STATUS_INVALID_DATETIME,
+    STATUS_INVALID_TIME_ORDER,
+    STATUS_DUPLICATE_ID,
+    STATUS_NOT_FOUND,
+    STATUS_ALREADY_DELIVERED,
+    STATUS_INPUT_ERROR,
+    STATUS_LINE_TOO_LONG,
+    STATUS_SYSTEM_TIME_ERROR
+} status_t;
 
-#endif //FUND_ALGOS_STATUS_H
+const char *status_message(status_t status);
+
+#endif

@@ -1,0 +1,4 @@
+101 Ivan Ivanov IVT-21 5 4 5 5 4
+102 Petr Petrov IVT-21 3 4 3 4 3
+103 Anna Sidorova CS-22 5 5 5 5 5
+104 Elena Smirnova CS-22 4 4 4 3 5

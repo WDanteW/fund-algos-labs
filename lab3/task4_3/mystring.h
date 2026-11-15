@@ -1,8 +1,26 @@
-//
-// Created by PC on 15.11.2026.
-//
+#ifndef MYSTRING_H
+#define MYSTRING_H
 
-#ifndef FUND_ALGOS_MYSTRING_H
-#define FUND_ALGOS_MYSTRING_H
+#include <stdbool.h>
 
-#endif //FUND_ALGOS_MYSTRING_H
+#include "status.h"
+
+typedef struct
+{
+    char *data;
+    int length;
+} String;
+
+status_t string_create(String *result, const char *source);
+void string_destroy(String *string);
+status_t string_compare_order(const String *left, const String *right,
+                              int *result);
+status_t string_compare_lex(const String *left, const String *right,
+                            int *result);
+status_t string_equal(const String *left, const String *right, bool *result);
+status_t string_copy_into(String *destination, const String *source);
+status_t string_clone(String **result, const String *source);
+void string_free(String **string);
+status_t string_concat(String *destination, const String *source);
+
+#endif
