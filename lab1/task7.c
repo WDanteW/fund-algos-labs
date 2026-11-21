@@ -3,26 +3,24 @@
 #include <stdbool.h>
 #include <string.h>
 #include <ctype.h>
+#include <sys/stat.h>
 
 typedef enum status_code {
     SUCCESS = 0,
     ERROR_INVALID_ARG_COUNT,
     ERROR_INVALID_FLAG,
     ERROR_FILE_OPEN,
-    ERROR_MEMORY_ALLOCATION
+    ERROR_MEMORY_ALLOCATION,
+    ERROR_SAME_FILE
 } status_code;
 
 static status_code read_lexeme(FILE *f, char **lexeme_out) {
-    if (f == NULL || lexeme_out == NULL) {
-        return ERROR_INVALID_FLAG;
-    }
+    if (f == NULL || lexeme_out == NULL) return ERROR_INVALID_FLAG;
 
     size_t cap = 64;
     size_t len = 0;
     char *buf = (char *)malloc(cap);
-    if (buf == NULL) {
-        return ERROR_MEMORY_ALLOCATION;
-    }
+    if (buf == NULL) return ERROR_MEMORY_ALLOCATION;
 
     int ch = 0;
     while ((ch = fgetc(f)) != EOF && isspace(ch)) {
@@ -72,6 +70,8 @@ static void to_base_string(unsigned int val, int base, char *out_buf, size_t out
 }
 
 static status_code convert_lexeme_to_base(const char *lexeme, int base, char **result_out) {
+    if (lexeme == NULL || result_out == NULL) return ERROR_INVALID_FLAG;
+
     size_t total_len = 0;
     for (size_t i = 0; lexeme[i] != '\0'; i++) {
         unsigned char val = (unsigned char)lexeme[i];
@@ -81,9 +81,7 @@ static status_code convert_lexeme_to_base(const char *lexeme, int base, char **r
     }
 
     char *res = (char *)malloc(total_len + 1);
-    if (res == NULL) {
-        return ERROR_MEMORY_ALLOCATION;
-    }
+    if (res == NULL) return ERROR_MEMORY_ALLOCATION;
     res[0] = '\0';
 
     for (size_t i = 0; lexeme[i] != '\0'; i++) {
@@ -98,11 +96,10 @@ static status_code convert_lexeme_to_base(const char *lexeme, int base, char **r
 }
 
 static char *to_lower_lexeme(const char *lexeme) {
+    if (lexeme == NULL) return NULL;
     size_t len = strlen(lexeme);
     char *res = (char *)malloc(len + 1);
-    if (res == NULL) {
-        return NULL;
-    }
+    if (res == NULL) return NULL;
     for (size_t i = 0; i <= len; i++) {
         res[i] = (char)tolower((unsigned char)lexeme[i]);
     }
@@ -110,16 +107,26 @@ static char *to_lower_lexeme(const char *lexeme) {
 }
 
 static char *clone_string(const char *str) {
+    if (str == NULL) return NULL;
     size_t len = strlen(str);
     char *res = (char *)malloc(len + 1);
-    if (res == NULL) {
-        return NULL;
-    }
-    strcpy(res, str);
+    if (res == NULL) return NULL;
+    memcpy(res, str, len + 1);
     return res;
 }
 
+static bool is_same_file(const char *path1, const char *path2) {
+    struct stat st1, st2;
+    if (stat(path1, &st1) != 0 || stat(path2, &st2) != 0) return false;
+    return st1.st_dev == st2.st_dev && st1.st_ino == st2.st_ino;
+}
+
 static status_code process_r(const char *file1, const char *file2, const char *out_file) {
+    if (is_same_file(file1, out_file) || is_same_file(file2, out_file)) {
+        fprintf(stderr, "Ошибка: выходной файл совпадает с одним из входных.\n");
+        return ERROR_SAME_FILE;
+    }
+
     FILE *f1 = fopen(file1, "r");
     if (f1 == NULL) return ERROR_FILE_OPEN;
 
@@ -142,20 +149,19 @@ static status_code process_r(const char *file1, const char *file2, const char *o
 
     while (true) {
         status_code st1 = read_lexeme(f1, &lex1);
-        status_code st2 = read_lexeme(f2, &lex2);
-
-        if (st1 != SUCCESS || st2 != SUCCESS) {
+        if (st1 != SUCCESS) {
             free(lex1);
-            free(lex2);
-            fclose(f1);
-            fclose(f2);
-            fclose(fout);
-            return ERROR_MEMORY_ALLOCATION;
+            fclose(f1); fclose(f2); fclose(fout);
+            return st1;
+        }
+        status_code st2 = read_lexeme(f2, &lex2);
+        if (st2 != SUCCESS) {
+            free(lex1); free(lex2);
+            fclose(f1); fclose(f2); fclose(fout);
+            return st2;
         }
 
-        if (lex1 == NULL && lex2 == NULL) {
-            break;
-        }
+        if (lex1 == NULL && lex2 == NULL) break;
 
         if (lex1 != NULL) {
             if (first_written) fputc(' ', fout);
@@ -181,6 +187,11 @@ static status_code process_r(const char *file1, const char *file2, const char *o
 }
 
 static status_code process_a(const char *in_file, const char *out_file) {
+    if (is_same_file(in_file, out_file)) {
+        fprintf(stderr, "Ошибка: выходной файл совпадает с входным.\n");
+        return ERROR_SAME_FILE;
+    }
+
     FILE *fin = fopen(in_file, "r");
     if (fin == NULL) return ERROR_FILE_OPEN;
 
@@ -197,14 +208,13 @@ static status_code process_a(const char *in_file, const char *out_file) {
     while (true) {
         status_code st = read_lexeme(fin, &lexeme);
         if (st != SUCCESS) {
+            free(lexeme);
             fclose(fin);
             fclose(fout);
-            return ERROR_MEMORY_ALLOCATION;
+            return st;
         }
 
-        if (lexeme == NULL) {
-            break;
-        }
+        if (lexeme == NULL) break;
 
         k++;
         char *processed = NULL;
@@ -213,47 +223,40 @@ static status_code process_a(const char *in_file, const char *out_file) {
             char *lowered = to_lower_lexeme(lexeme);
             if (lowered == NULL) {
                 free(lexeme);
-                fclose(fin);
-                fclose(fout);
+                fclose(fin); fclose(fout);
                 return ERROR_MEMORY_ALLOCATION;
             }
             status_code cst = convert_lexeme_to_base(lowered, 4, &processed);
             free(lowered);
             if (cst != SUCCESS) {
                 free(lexeme);
-                fclose(fin);
-                fclose(fout);
+                fclose(fin); fclose(fout);
                 return cst;
             }
         } else if (k % 2 == 0) {
             processed = to_lower_lexeme(lexeme);
             if (processed == NULL) {
                 free(lexeme);
-                fclose(fin);
-                fclose(fout);
+                fclose(fin); fclose(fout);
                 return ERROR_MEMORY_ALLOCATION;
             }
         } else if (k % 5 == 0) {
             status_code cst = convert_lexeme_to_base(lexeme, 8, &processed);
             if (cst != SUCCESS) {
                 free(lexeme);
-                fclose(fin);
-                fclose(fout);
+                fclose(fin); fclose(fout);
                 return cst;
             }
         } else {
             processed = clone_string(lexeme);
             if (processed == NULL) {
                 free(lexeme);
-                fclose(fin);
-                fclose(fout);
+                fclose(fin); fclose(fout);
                 return ERROR_MEMORY_ALLOCATION;
             }
         }
 
-        if (first_written) {
-            fputc(' ', fout);
-        }
+        if (first_written) fputc(' ', fout);
         fputs(processed, fout);
         first_written = true;
 

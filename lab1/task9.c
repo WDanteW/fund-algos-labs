@@ -26,49 +26,48 @@ static status_code parse_int(const char *str, int *result) {
     return SUCCESS;
 }
 
-static status_code process_part1(int a, int b) {
-    if (a > b) {
-        return ERROR_INVALID_INPUT;
-    }
+static int random_in_range(int min, int max) {
+    long long range = (long long)max - (long long)min + 1;
+    if (range <= 0) return min;
+    return min + (int)(random() % range);
+}
 
-    int arr[FIXED_SIZE];
-    for (int i = 0; i < FIXED_SIZE; i++) {
-        arr[i] = a + rand() % (b - a + 1);
-    }
+static status_code process_part1(int a, int b, int *result_arr) {
+    if (a > b) return ERROR_INVALID_INPUT;
 
-    printf("Часть 1. Исходный массив:\n");
     for (int i = 0; i < FIXED_SIZE; i++) {
-        printf("%d ", arr[i]);
+        result_arr[i] = random_in_range(a, b);
     }
-    printf("\n");
 
     size_t min_idx = 0;
     size_t max_idx = 0;
     for (size_t i = 1; i < FIXED_SIZE; i++) {
-        if (arr[i] < arr[min_idx]) {
+        if (result_arr[i] < result_arr[min_idx]) {
             min_idx = i;
         }
-        if (arr[i] > arr[max_idx]) {
+        if (result_arr[i] > result_arr[max_idx]) {
             max_idx = i;
         }
     }
 
-    int temp = arr[min_idx];
-    arr[min_idx] = arr[max_idx];
-    arr[max_idx] = temp;
-
-    printf("Массив после обмена минимального и максимального элементов:\n");
-    for (int i = 0; i < FIXED_SIZE; i++) {
-        printf("%d ", arr[i]);
-    }
-    printf("\n\n");
+    int temp = result_arr[min_idx];
+    result_arr[min_idx] = result_arr[max_idx];
+    result_arr[max_idx] = temp;
 
     return SUCCESS;
 }
 
-static status_code process_part2(void) {
-    size_t size_a = (size_t)(rand() % (10000 - 10 + 1) + 10);
-    size_t size_b = (size_t)(rand() % (10000 - 10 + 1) + 10);
+static void print_array(const char *label, const int *arr, size_t size) {
+    printf("%s: ", label);
+    for (size_t i = 0; i < size; i++) {
+        printf("%d ", arr[i]);
+    }
+    printf("\n");
+}
+
+static status_code process_part2(int **c_out, size_t *c_size_out) {
+    size_t size_a = (size_t)(random() % (10000 - 10 + 1) + 10);
+    size_t size_b = (size_t)(random() % (10000 - 10 + 1) + 10);
 
     int *a = (int *)malloc(size_a * sizeof(int));
     if (a == NULL) return ERROR_MEMORY_ALLOCATION;
@@ -87,11 +86,11 @@ static status_code process_part2(void) {
     }
 
     for (size_t i = 0; i < size_a; i++) {
-        a[i] = (rand() % 2001) - 1000;
+        a[i] = random_in_range(-1000, 1000);
     }
 
     for (size_t i = 0; i < size_b; i++) {
-        b[i] = (rand() % 2001) - 1000;
+        b[i] = random_in_range(-1000, 1000);
     }
 
     for (size_t i = 0; i < size_a; i++) {
@@ -105,27 +104,14 @@ static status_code process_part2(void) {
                 closest = b[j];
             }
         }
-
         c[i] = a[i] + closest;
     }
 
-    printf("Часть 2 успешно выполнена.\n");
-    printf("Размер массива A: %zu, размер массива B: %zu\n", size_a, size_b);
-    printf("Первые 5 элементов массива A: ");
-    for (size_t i = 0; i < 5 && i < size_a; i++) {
-        printf("%d ", a[i]);
-    }
-    printf("\n");
-    printf("Первые 5 элементов массива C: ");
-    for (size_t i = 0; i < 5 && i < size_a; i++) {
-        printf("%d ", c[i]);
-    }
-    printf("\n");
-
     free(a);
     free(b);
-    free(c);
 
+    *c_out = c;
+    *c_size_out = size_a;
     return SUCCESS;
 }
 
@@ -141,18 +127,37 @@ int main(int argc, char *argv[]) {
         fprintf(stderr, "Ошибка: неверный формат диапазона a и b.\n");
         return ERROR_INVALID_INPUT;
     }
-
-    srand((unsigned int)time(NULL));
-
-    status_code st = process_part1(a, b);
-    if (st != SUCCESS) {
-        return st;
+    if (a > b) {
+        fprintf(stderr, "Ошибка: значение a должно быть меньше или равно b.\n");
+        return ERROR_INVALID_INPUT;
     }
 
-    st = process_part2();
-    if (st != SUCCESS) {
-        return st;
+    srandom((unsigned int)time(NULL));
+
+    int arr1[FIXED_SIZE];
+    if (process_part1(a, b, arr1) != SUCCESS) {
+        fprintf(stderr, "Ошибка в части 1.\n");
+        return ERROR_INVALID_INPUT;
+    }
+    printf("Часть 1.\n");
+    print_array("Исходный массив", arr1, FIXED_SIZE);
+    printf("\n");
+
+    int *c = NULL;
+    size_t c_size = 0;
+    if (process_part2(&c, &c_size) != SUCCESS) {
+        fprintf(stderr, "Ошибка при выполнении части 2.\n");
+        return ERROR_MEMORY_ALLOCATION;
     }
 
+    printf("Часть 2 успешно выполнена.\n");
+    printf("Размер массива C: %zu\n", c_size);
+    printf("Первые 5 элементов массива C: ");
+    for (size_t i = 0; i < 5 && i < c_size; i++) {
+        printf("%d ", c[i]);
+    }
+    printf("\n");
+
+    free(c);
     return SUCCESS;
 }
