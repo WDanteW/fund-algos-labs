@@ -9,98 +9,62 @@ typedef enum status_code {
 } status_code;
 
 static status_code parse_double(const char *str, double *result) {
-    if (str == NULL || result == NULL || *str == '\0') {
-        return ERROR_INVALID_EPSILON;
-    }
-
+    if (str == NULL || result == NULL || *str == '\0') return ERROR_INVALID_EPSILON;
     char *endptr = NULL;
     double val = strtod(str, &endptr);
-
-    if (endptr == str || *endptr != '\0') {
-        return ERROR_INVALID_EPSILON;
-    }
-
+    if (endptr == str || *endptr != '\0') return ERROR_INVALID_EPSILON;
     *result = val;
     return SUCCESS;
 }
 
 static status_code sum_a(double eps, double x, double *res) {
-    if (res == NULL) return ERROR_INVALID_EPSILON;
-
     double sum = 0.0;
     double term = 1.0;
     int n = 0;
-
     while (fabs(term) >= eps) {
         sum += term;
         n++;
-        term = pow(x, n) / tgamma(n + 1);
+        term *= x / n;
     }
-
     *res = sum;
     return SUCCESS;
 }
 
 static status_code sum_b(double eps, double x, double *res) {
-    if (res == NULL) return ERROR_INVALID_EPSILON;
-
     double sum = 0.0;
     double term = 1.0;
     int n = 0;
-
     while (fabs(term) >= eps) {
         sum += term;
         n++;
-        double sign = (n % 2 == 1) ? -1.0 : 1.0;
-        term = sign * pow(x, 2 * n) / tgamma(2 * n + 1);
+        term *= -(x * x) / ((2.0 * n - 1.0) * (2.0 * n));
     }
-
     *res = sum;
     return SUCCESS;
 }
 
 static status_code sum_c(double eps, double x, double *res) {
-    if (res == NULL) return ERROR_INVALID_EPSILON;
-
     double sum = 0.0;
     double term = 1.0;
     int n = 0;
-
     while (fabs(term) >= eps) {
         sum += term;
         n++;
-        double num = pow(3.0, 3 * n) * pow(tgamma(n + 1), 3) * pow(x, 2 * n);
-        double den = tgamma(3 * n + 1);
-        term = num / den;
+        term *= (27.0 * n * n * n * x * x) / ((3.0 * n - 2.0) * (3.0 * n - 1.0) * (3.0 * n));
     }
-
     *res = sum;
     return SUCCESS;
 }
 
 static status_code sum_d(double eps, double x, double *res) {
-    if (res == NULL) return ERROR_INVALID_EPSILON;
-
     double sum = 0.0;
-    double term = 0.0;
+    double term = -(x * x) / 2.0;
     int n = 1;
-
-    do {
-        double sign = (n % 2 == 1) ? -1.0 : 1.0;
-        double double_fact_num = 1.0;
-        for (int i = 1; i <= 2 * n - 1; i += 2) {
-            double_fact_num *= i;
-        }
-        double double_fact_den = 1.0;
-        for (int i = 2; i <= 2 * n; i += 2) {
-            double_fact_den *= i;
-        }
-
-        term = sign * double_fact_num * pow(x, 2 * n) / double_fact_den;
+    while (fabs(term) >= eps) {
         sum += term;
         n++;
-    } while (fabs(term) >= eps);
-
+        term *= -((2.0 * n - 2.0) * (2.0 * n - 3.0) * x * x) / ((2.0 * n - 1.0) * (2.0 * n));
+    }
     *res = sum;
     return SUCCESS;
 }
@@ -124,11 +88,12 @@ static double f_int_d(double x) {
     return pow(x, x);
 }
 
-static double integrate(double (*func)(double), double a, double b, int n) {
+static double integrate_rectangles(double (*func)(double), double a, double b, int n) {
     double h = (b - a) / n;
-    double sum = 0.5 * (func(a) + func(b));
-    for (int i = 1; i < n; i++) {
-        sum += func(a + i * h);
+    double sum = 0.0;
+    for (int i = 0; i < n; i++) {
+        double x_mid = a + (i + 0.5) * h;
+        sum += func(x_mid);
     }
     return sum * h;
 }
@@ -137,14 +102,14 @@ static status_code integral_generic(double (*func)(double), double a, double b, 
     if (res == NULL) return ERROR_INVALID_EPSILON;
 
     int n = 10;
-    double prev = integrate(func, a, b, n);
+    double prev = integrate_rectangles(func, a, b, n);
     n *= 2;
-    double current = integrate(func, a, b, n);
+    double current = integrate_rectangles(func, a, b, n);
 
     while (fabs(current - prev) >= eps) {
         prev = current;
         n *= 2;
-        current = integrate(func, a, b, n);
+        current = integrate_rectangles(func, a, b, n);
     }
 
     *res = current;
@@ -181,16 +146,16 @@ int main(int argc, char *argv[]) {
     sum_d(eps, x_val, &res);
     printf("Сумма 1.d: %.10f\n\n", res);
 
-    integral_generic(f_int_a, 0.0001, 1.0, eps, &res);
+    integral_generic(f_int_a, 0.0, 1.0, eps, &res);
     printf("Интеграл 2.a: %.10f\n", res);
 
     integral_generic(f_int_b, 0.0, 1.0, eps, &res);
     printf("Интеграл 2.b: %.10f\n", res);
 
-    integral_generic(f_int_c, 0.0, 0.9999, eps, &res);
+    integral_generic(f_int_c, 0.0, 1.0, eps, &res);
     printf("Интеграл 2.c: %.10f\n", res);
 
-    integral_generic(f_int_d, 0.0001, 1.0, eps, &res);
+    integral_generic(f_int_d, 0.0, 1.0, eps, &res);
     printf("Интеграл 2.d: %.10f\n", res);
 
     return SUCCESS;

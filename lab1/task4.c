@@ -3,13 +3,15 @@
 #include <stdbool.h>
 #include <string.h>
 #include <ctype.h>
+#include <sys/stat.h>
 
 typedef enum status_code {
     SUCCESS = 0,
     ERROR_INVALID_ARG_COUNT,
     ERROR_INVALID_FLAG,
     ERROR_FILE_OPEN,
-    ERROR_MEMORY_ALLOCATION
+    ERROR_MEMORY_ALLOCATION,
+    ERROR_SAME_FILE
 } status_code;
 
 static status_code create_out_filename(const char *in_path, char **out_path) {
@@ -101,6 +103,14 @@ static status_code process_a(FILE *fin, FILE *fout) {
     return SUCCESS;
 }
 
+static bool is_same_file(const char *path1, const char *path2) {
+    struct stat st1, st2;
+    if (stat(path1, &st1) != 0 || stat(path2, &st2) != 0) {
+        return false;
+    }
+    return (st1.st_dev == st2.st_dev) && (st1.st_ino == st2.st_ino);
+}
+
 int main(int argc, char *argv[]) {
     if (argc < 3) {
         fprintf(stderr, "Ошибка: недостаточно аргументов.\n");
@@ -149,10 +159,10 @@ int main(int argc, char *argv[]) {
         out_path = out_path_allocated;
     }
 
-    if (strcmp(in_path, out_path) == 0) {
+    if (is_same_file(in_path, out_path)) {
         fprintf(stderr, "Ошибка: входной и выходной файлы не могут совпадать!\n");
         free(out_path_allocated);
-        return ERROR_FILE_OPEN;
+        return ERROR_SAME_FILE;
     }
 
     FILE *fin = fopen(in_path, "r");
